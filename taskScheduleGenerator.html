@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+	</head>
+	<body>
+		<script>
+			// constraints
+			// - everyone should be paired with everyone-ish
+			// - everyone should have the same amount of tasks per type (implicitly means everyone also has the same amount of tasks in total)
+
+			function calcPlanning(weeks) {
+				let perTypePerPerson = [];
+				for (let i = 1; i < 3 * 8 + 1; i++) perTypePerPerson[i] = 0;
+
+
+				let corridorTasks = [Symbol(), 0, 0, 0, 0, 0, 0, 0, 0];
+				let toiletTasks = [Symbol(), 0, 0, 0, 0, 0, 0, 0, 0];
+				let kitchenTasks = [Symbol(), 0, 0, 0, 0, 0, 0, 0, 0];
+
+
+				let planning = [];
+				let stack = [];
+				let lastPerson = 0;
+				for (let i = 0; i < weeks; i++)
+				{
+					for (let i = 1; i <= 6; i++) 
+					{
+						let newMember = lastPerson >= 8 ? 1 : lastPerson + 1;
+						lastPerson = newMember;
+						stack.push(newMember);
+					}
+
+
+					let people = shuffleArray(stack);
+					let week = {
+						corridor: people.splice(0, 2),
+						toilets: people.splice(0, 2),
+						kitchen: people.splice(0, 2),
+					};
+
+					corridorTasks[week.corridor[0]]++;
+					corridorTasks[week.corridor[1]]++;
+					toiletTasks[week.toilets[0]]++;
+					toiletTasks[week.toilets[1]]++;
+					kitchenTasks[week.kitchen[0]]++;
+					kitchenTasks[week.kitchen[1]]++;
+
+					perTypePerPerson[week.corridor[0]]++;
+					perTypePerPerson[week.corridor[1]]++;
+					perTypePerPerson[week.toilets[0] + 8]++;
+					perTypePerPerson[week.toilets[1] + 8]++;
+					perTypePerPerson[week.kitchen[0] + 2 * 8]++;
+					perTypePerPerson[week.kitchen[1] + 2 * 8]++;
+					planning.push(week);
+				}
+				const expectedTasks = weeks * 6 / 8 / 3;
+				let error = 0;
+				for (let i = 1; i <= 8; i++)
+				{
+					error += Math.abs(corridorTasks[i] - expectedTasks) + Math.abs(toiletTasks[i] - expectedTasks) + Math.abs(kitchenTasks[i] - expectedTasks);
+				}
+
+				return {
+					planning: planning,
+					fairness: error / weeks,
+					corridorTasks: corridorTasks,
+					toiletTasks: toiletTasks,
+					kitchenTasks: kitchenTasks,
+				}
+			}
+
+			function generateFairPlanning(_weeks, _tries) {
+				let bestResult;
+				let bestFairness = Infinity;
+				for (let i = 0; i < _tries; i++)
+				{
+					let planning = calcPlanning(_weeks);
+					if (planning.fairness > bestFairness) continue;
+					bestResult = planning;
+					bestFairness = planning.fairness;
+				}
+				return bestResult
+			}
+
+			console.log(calcPlanning(20), generateFairPlanning(40, 100000));
+
+
+
+
+
+
+
+			function shuffleArray(array) {
+			  let curId = array.length;
+			  // There remain elements to shuffle
+			  while (0 !== curId) {
+			    // Pick a remaining element
+			    let randId = Math.floor(Math.random() * curId);
+			    curId -= 1;
+			    // Swap it with the current element.
+			    let tmp = array[curId];
+			    array[curId] = array[randId];
+			    array[randId] = tmp;
+			  }
+			  return array;
+			}
+
+			function getArrayAverage(_arr) {
+				let total = 0;
+				let counts = 0;
+				for (let i = 0; i < _arr.length; i++) 
+				{
+					if (typeof _arr[i] != 'number') continue;
+					total += _arr[i];
+					counts++;
+				}
+				return total / counts;
+			}
+			
+		</script>
+
+
+
+	</body>
+</html>
